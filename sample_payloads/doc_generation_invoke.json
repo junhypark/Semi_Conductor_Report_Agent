@@ -1,0 +1,18 @@
+{
+  "request_id": "req-doc-gen",
+  "trace_id": "trace-doc-gen",
+  "agent_name": "doc_generation",
+  "payload": {
+    "user_query": "Analyze SK hynix future market direction",
+    "retrieval_summary": {
+      "rag_document_count": 4,
+      "web_article_count": 20
+    },
+    "rag_results": [],
+    "web_results": []
+  },
+  "context": {
+    "generation_round": 1
+  },
+  "config": {}
+}

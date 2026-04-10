@@ -1,0 +1,18 @@
+{
+  "request_id": "req-format",
+  "trace_id": "trace-format",
+  "agent_name": "format",
+  "payload": {
+    "section_drafts": {
+      "background_of_analysis": "Background placeholder.",
+      "current_status_of_target_technologies": "Technology placeholder.",
+      "competitor_trend_analysis": "Competitor placeholder.",
+      "strategic_implications": "Strategy placeholder.",
+      "trl_evaluation": "TRL placeholder."
+    }
+  },
+  "context": {},
+  "config": {
+    "report_name": "sample_report"
+  }
+}

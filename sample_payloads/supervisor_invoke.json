@@ -1,0 +1,14 @@
+{
+  "request_id": "req-supervisor-sample",
+  "trace_id": "trace-supervisor-sample",
+  "agent_name": "supervisor",
+  "payload": {
+    "user_query": "Analyze SK hynix future market direction including HBM4, PIM, CXL, competitors, and 5 to 10 year outlook"
+  },
+  "context": {},
+  "config": {
+    "transport": "inprocess",
+    "llm_mode": "auto",
+    "openai_model": "gpt-4.1-mini"
+  }
+}

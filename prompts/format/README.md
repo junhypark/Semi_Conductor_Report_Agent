@@ -1,0 +1,1 @@
+Format prompt placeholder.

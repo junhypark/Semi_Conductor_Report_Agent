@@ -1,0 +1,15 @@
+{
+  "request_id": "req-web-search",
+  "trace_id": "trace-web-search",
+  "agent_name": "web_search",
+  "payload": {
+    "transformed_queries": [
+      {
+        "type": "market",
+        "query": "SK hynix AI memory market demand outlook"
+      }
+    ]
+  },
+  "context": {},
+  "config": {}
+}

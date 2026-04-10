@@ -1,0 +1,179 @@
+services:
+  supervisor-service:
+    build:
+      context: ..
+      dockerfile: docker/service.Dockerfile
+      args:
+        SERVICE_MODULE: agents.supervisor.app:app
+    container_name: supervisor-service
+    ports:
+      - "8000:8000"
+    volumes:
+      - ../outputs:/app/outputs
+      - ../data:/app/data
+      - ../data/huggingface:/root/.cache/huggingface
+    env_file:
+      - ../.env
+    environment:
+      QUERY_TRANSFORMATION_URL: http://query-transformation-service:8000
+      RAG_URL: http://rag-service:8000
+      WEB_SEARCH_URL: http://web-search-service:8000
+      DOC_GENERATION_URL: http://doc-generation-service:8000
+      FORMAT_URL: http://format-service:8000
+      SCRAPE_URL: http://scrape-service:8000
+      QDRANT_URL: http://qdrant-service:6333
+      EMBEDDING_MODEL_NAME: BAAI/bge-m3
+    depends_on:
+      - query-transformation-service
+      - rag-service
+      - web-search-service
+      - doc-generation-service
+      - format-service
+      - scrape-service
+      - qdrant-service
+    networks:
+      - agent-net
+
+  query-transformation-service:
+    build:
+      context: ..
+      dockerfile: docker/service.Dockerfile
+      args:
+        SERVICE_MODULE: agents.query_transformation.app:app
+    container_name: query-transformation-service
+    ports:
+      - "8001:8000"
+    volumes:
+      - ../outputs:/app/outputs
+      - ../data:/app/data
+      - ../data/huggingface:/root/.cache/huggingface
+    env_file:
+      - ../.env
+    environment:
+      QDRANT_URL: http://qdrant-service:6333
+    depends_on: []
+    networks:
+      - agent-net
+
+  rag-service:
+    build:
+      context: ..
+      dockerfile: docker/service.Dockerfile
+      args:
+        SERVICE_MODULE: agents.rag.app:app
+    container_name: rag-service
+    ports:
+      - "8002:8000"
+    volumes:
+      - ../outputs:/app/outputs
+      - ../data:/app/data
+      - ../data/huggingface:/root/.cache/huggingface
+    env_file:
+      - ../.env
+    environment:
+      QDRANT_URL: http://qdrant-service:6333
+      EMBEDDING_MODEL_NAME: BAAI/bge-m3
+      QDRANT_COLLECTION: rag_documents
+    depends_on:
+      - qdrant-service
+    networks:
+      - agent-net
+
+  web-search-service:
+    build:
+      context: ..
+      dockerfile: docker/service.Dockerfile
+      args:
+        SERVICE_MODULE: agents.web_search.app:app
+    container_name: web-search-service
+    ports:
+      - "8003:8000"
+    volumes:
+      - ../outputs:/app/outputs
+      - ../data:/app/data
+      - ../data/huggingface:/root/.cache/huggingface
+    env_file:
+      - ../.env
+    environment:
+      QDRANT_URL: http://qdrant-service:6333
+      EMBEDDING_MODEL_NAME: BAAI/bge-m3
+    depends_on: []
+    networks:
+      - agent-net
+
+  doc-generation-service:
+    build:
+      context: ..
+      dockerfile: docker/service.Dockerfile
+      args:
+        SERVICE_MODULE: agents.doc_generation.app:app
+    container_name: doc-generation-service
+    ports:
+      - "8004:8000"
+    volumes:
+      - ../outputs:/app/outputs
+      - ../data:/app/data
+    env_file:
+      - ../.env
+    environment:
+      QDRANT_URL: http://qdrant-service:6333
+    depends_on: []
+    networks:
+      - agent-net
+
+  format-service:
+    build:
+      context: ..
+      dockerfile: docker/service.Dockerfile
+      args:
+        SERVICE_MODULE: agents.format.app:app
+    container_name: format-service
+    ports:
+      - "8005:8000"
+    volumes:
+      - ../outputs:/app/outputs
+      - ../data:/app/data
+    env_file:
+      - ../.env
+    environment:
+      QDRANT_URL: http://qdrant-service:6333
+    depends_on: []
+    networks:
+      - agent-net
+
+  scrape-service:
+    build:
+      context: ..
+      dockerfile: docker/service.Dockerfile
+      args:
+        SERVICE_MODULE: agents.scrape.app:app
+    container_name: scrape-service
+    ports:
+      - "8006:8000"
+    volumes:
+      - ../outputs:/app/outputs
+      - ../data:/app/data
+      - ../data/huggingface:/root/.cache/huggingface
+    env_file:
+      - ../.env
+    environment:
+      QDRANT_URL: http://qdrant-service:6333
+      EMBEDDING_MODEL_NAME: BAAI/bge-m3
+    depends_on: []
+    networks:
+      - agent-net
+
+  qdrant-service:
+    image: qdrant/qdrant:v1.13.6
+    container_name: qdrant-service
+    ports:
+      - "6333:6333"
+      - "6334:6334"
+    volumes:
+      - ../data/qdrant_storage:/qdrant/storage
+    networks:
+      - agent-net
+
+networks:
+  agent-net:
+    driver: bridge

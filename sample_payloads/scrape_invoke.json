@@ -1,0 +1,16 @@
+{
+  "request_id": "req-scrape",
+  "trace_id": "trace-scrape",
+  "agent_name": "scrape",
+  "payload": {
+    "target_config": {
+      "targets": [
+        "arxiv",
+        "company_reports",
+        "earnings_reports"
+      ]
+    }
+  },
+  "context": {},
+  "config": {}
+}

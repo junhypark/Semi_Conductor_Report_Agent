@@ -1,0 +1,1 @@
+Document generation prompt placeholder.

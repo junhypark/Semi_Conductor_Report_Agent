@@ -1,0 +1,18 @@
+{
+  "request_id": "req-rag",
+  "trace_id": "trace-rag",
+  "agent_name": "rag",
+  "payload": {
+    "user_query": "Analyze SK hynix future market direction",
+    "transformed_queries": [
+      {
+        "type": "technical",
+        "query": "Analyze SK hynix future market direction HBM4 PIM CXL technology roadmap"
+      }
+    ]
+  },
+  "context": {
+    "retrieval_round": 1
+  },
+  "config": {}
+}
