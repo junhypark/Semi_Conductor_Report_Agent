@@ -8,9 +8,9 @@ def invoke(request: StandardRequest) -> dict:
     transformed_queries = [
         {"type": "technical", "query": f"{user_query} HBM4 PIM CXL technology roadmap"},
         {"type": "market", "query": f"{user_query} AI memory market demand outlook"},
-        {"type": "competitor", "query": f"{user_query} Samsung HBM4 PIM CXL strategy future plan"},
+        {"type": "competitor", "query": f"{user_query} Samsung Electronics 삼성전자 HBM4 PIM CXL strategy future plan"},
         {"type": "competitor", "query": f"{user_query} TSMC advanced packaging HBM ecosystem future plan"},
-        {"type": "competitor", "query": f"{user_query} Micron HBM4 strategy future plan"},
+        {"type": "competitor", "query": f"{user_query} Micron 마이크론 HBM4 strategy future plan annual report"},
         {"type": "future_prediction", "query": f"{user_query} 5 to 10 year forecast and R&D direction"},
     ]
     return {

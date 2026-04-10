@@ -60,20 +60,103 @@ def retrieve_documents(user_query: str, transformed_queries: list[dict[str, Any]
     corpus = load_corpus()
     if not corpus:
         return []
+    query_specs = [{"type": "base", "query": user_query}] + list(transformed_queries)
+    buckets: list[list[dict[str, Any]]] = []
+    best_by_doc: dict[str, dict[str, Any]] = {}
 
-    query_terms = _tokenize(user_query)
-    for item in transformed_queries:
-        query_terms.extend(_tokenize(item.get("query", "")))
+    for spec in query_specs:
+        query_text = spec.get("query", "")
+        query_terms = _tokenize(query_text)
+        scored: list[tuple[float, dict[str, Any]]] = []
+        for record in corpus:
+            haystack = f"{record.get('title', '')} {record.get('chunk', '')} {' '.join(record.get('keywords', []))}".lower()
+            overlap = sum(1 for term in query_terms if term in haystack)
+            if overlap <= 0:
+                continue
+            score = float(overlap) + _competitor_query_boost(spec, haystack)
+            candidate = {**record, "score": score, "matched_query": query_text, "matched_query_type": spec.get("type", "base")}
+            scored.append((score, candidate))
+            doc_id = str(record.get("doc_id", ""))
+            previous = best_by_doc.get(doc_id)
+            if previous is None or score > float(previous.get("score", 0.0)):
+                best_by_doc[doc_id] = candidate
+        focus_keywords = _competitor_focus_keywords(spec)
+        scored.sort(
+            key=lambda item: (
+                _focus_keyword_match_count(focus_keywords, item[1]),
+                item[0],
+                item[1].get("title", ""),
+            ),
+            reverse=True,
+        )
+        buckets.append([candidate for _, candidate in scored[:4]])
 
-    scored: list[tuple[int, dict[str, Any]]] = []
-    for record in corpus:
-        haystack = f"{record.get('title', '')} {record.get('chunk', '')} {' '.join(record.get('keywords', []))}".lower()
-        score = sum(1 for term in query_terms if term in haystack)
-        if score > 0:
-            scored.append((score, record))
+    selected: list[dict[str, Any]] = []
+    seen_doc_ids: set[str] = set()
 
-    scored.sort(key=lambda item: (item[0], item[1].get("title", "")), reverse=True)
-    return [record for _, record in scored[:limit]]
+    for bucket in buckets:
+        for candidate in bucket:
+            doc_id = str(candidate.get("doc_id", ""))
+            if doc_id in seen_doc_ids:
+                continue
+            selected.append(candidate)
+            seen_doc_ids.add(doc_id)
+            break
+        if len(selected) >= limit:
+            return selected[:limit]
+
+    remaining = sorted(best_by_doc.values(), key=lambda item: (float(item.get("score", 0.0)), item.get("title", "")), reverse=True)
+    for candidate in remaining:
+        doc_id = str(candidate.get("doc_id", ""))
+        if doc_id in seen_doc_ids:
+            continue
+        selected.append(candidate)
+        seen_doc_ids.add(doc_id)
+        if len(selected) >= limit:
+            break
+    return selected[:limit]
+
+
+def _competitor_query_boost(spec: dict[str, Any], haystack: str) -> float:
+    if spec.get("type") != "competitor":
+        return 0.0
+    query_text = str(spec.get("query", "")).lower()
+    boost = 0.0
+    for keywords in [
+        ["samsung", "삼성"],
+        ["micron", "마이크론"],
+        ["tsmc"],
+    ]:
+        if any(keyword in query_text for keyword in keywords) and any(keyword in haystack for keyword in keywords):
+            boost += 3.0
+    return boost
+
+
+def _competitor_focus_keywords(spec: dict[str, Any]) -> list[str]:
+    if spec.get("type") != "competitor":
+        return []
+    query_text = str(spec.get("query", "")).lower()
+    for keywords in [
+        ["samsung", "삼성", "samsung electronics", "삼성전자"],
+        ["micron", "마이크론"],
+        ["tsmc"],
+    ]:
+        if any(keyword in query_text for keyword in keywords):
+            return keywords
+    return []
+
+
+def _focus_keyword_match_count(keywords: list[str], candidate: dict[str, Any]) -> int:
+    if not keywords:
+        return 0
+    haystack = " ".join(
+        [
+            str(candidate.get("title", "")),
+            str(candidate.get("source", "")),
+            str(candidate.get("chunk", "")),
+        ]
+    ).lower()
+    return sum(1 for keyword in keywords if keyword in haystack)
 
 
 def _read_path(path: Path) -> list[dict[str, Any]]:

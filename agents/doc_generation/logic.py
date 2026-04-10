@@ -557,23 +557,11 @@ def _build_executive_summary(
     news_titles = [_localized_title_text(str(item.get("title", "Untitled"))) for item in web_results[:3]]
     tech_lines = [line for line in _sanitize_generated_text(sections["current_status_of_target_technologies"]).splitlines() if line.strip().startswith("요약 ")]
     lines = [
-        f"본 Executive Summary는 '{user_query}'에 대한 전체 보고서 내용을 종합하여 작성하였다.",
-        f"검토 대상은 로컬 문서 {rag_count}건, 웹 기사 {web_count}건, arXiv 참고 자료 {arxiv_count}건이다.",
-        f"핵심 검토 문서에는 {', '.join(doc_titles) if doc_titles else '내부 기술 문서'}가 포함된다.",
-        f"핵심 검토 뉴스에는 {', '.join(news_titles) if news_titles else '최신 시장 기사'}가 포함된다.",
-        f"분석 배경의 결론은 {_extract_summary_line(sections['background_of_analysis'])}",
-        "본 보고서가 미래전략 기획에 집중한 이유는 성능 경쟁뿐 아니라 설비 투자 시차, 패키징 공급망, 고객 채택 일정, 기술 성숙도 판단이 동시에 시장 성과를 좌우하기 때문이다.",
-        f"핵심 기술 현황의 첫 번째 요지는 {tech_lines[0] if len(tech_lines) > 0 else _extract_summary_line(sections['current_status_of_target_technologies'])}",
-        f"핵심 기술 현황의 두 번째 요지는 {tech_lines[1] if len(tech_lines) > 1 else 'HBM4, PIM, CXL을 함께 검토해야 한다는 점이다.'}",
-        f"핵심 기술 현황의 세 번째 요지는 {tech_lines[2] if len(tech_lines) > 2 else '제조 수율과 열 관리, 시스템 통합성이 병목이라는 점이다.'}",
-        f"경쟁사 비교의 핵심은 {_extract_summary_line(sections['competitor_trend_analysis'])}",
-        "경쟁사별 비교에서는 삼성전자, TSMC, 마이크론의 현재 전략, 미래 계획, 전략 TRL을 같은 프레임으로 비교하였다.",
-        "자료가 부족한 경쟁사 항목은 웹 검색으로 보완하고, 웹 검색에도 근거가 없을 경우 확인 가능한 자료를 찾지 못했다는 문체로 한계를 명시하였다.",
-        f"전략적 시사점의 핵심은 {_extract_summary_line(sections['strategic_implications'])}",
-        f"TRL 평가는 {_extract_summary_line(sections['trl_evaluation'])}",
-        "종합 결론은 SK hynix가 단기적으로 HBM4 실행력을 확실히 확보하고, 중기적으로 PIM과 CXL을 연계한 연구개발 옵션을 체계적으로 확장해야 한다는 점이다.",
-        "실행 우선순위는 수율 안정화, 패키징 병목 완화, 고객 채택 시나리오 검증을 동시에 관리할 수 있는 포트폴리오 운영 체계를 확보하는 데 있다.",
-        "이 보고서는 기술 구조, 시장 기사, 경쟁사 전략, TRL 판단을 함께 연결하여 미래 시장 방향과 연구개발 방향을 통합적으로 제안한다.",
+        f"본 Executive Summary는 '{user_query}'에 대한 전체 보고서 결론만 압축하여 제시한다.",
+        f"검토 대상은 로컬 문서 {rag_count}건, 웹 기사 {web_count}건, arXiv 참고 자료 {arxiv_count}건이며 핵심 문서는 {', '.join(doc_titles) if doc_titles else '내부 기술 문서'}이다.",
+        f"핵심 기술 요지는 {_compact(tech_lines[0] if len(tech_lines) > 0 else _extract_summary_line(sections['current_status_of_target_technologies']), 140)}",
+        f"경쟁 및 전략 요지는 {_compact(_extract_summary_line(sections['competitor_trend_analysis']), 140)} {_compact(_extract_summary_line(sections['strategic_implications']), 140)}",
+        f"최종 결론은 SK hynix가 단기적으로 HBM4 실행력과 수율 안정화를 확보하고, 중기적으로 PIM·CXL 기반 연구개발을 확대해야 한다는 점이며 참고 뉴스는 {', '.join(news_titles[:2]) if news_titles else '최신 시장 기사'}이다.",
     ]
     return "\n".join(lines)
 
@@ -602,6 +590,8 @@ def _section_text(request: StandardRequest, key: str) -> str:
                 (
                     f"본 보고서는 '{user_query}'를 연구 질문으로 설정하고, Supervisor 기반 워크플로를 통해 "
                     f"로컬 근거 문서 {rag_count}건, 정규화된 웹 기사 {web_count}건, arXiv 참고 자료 {arxiv_count}건을 종합하여 SK hynix의 미래 시장 방향을 검토하였다. "
+                    f"핵심 검토 문서는 {', '.join(list(dict.fromkeys(_display_record_title(item) for item in rag_results[:3]))) if rag_results else '내부 기술 문서'}이며, "
+                    f"대표 뉴스 사례는 {', '.join(_localized_title_text(str(item.get('title', 'Untitled'))) for item in web_results[:3]) if web_results else '최신 시장 기사'}이다. "
                     f"{_future_strategy_focus_reason()} {news_reference} {conclusion_line}"
                 ),
                 _limitation_block(
@@ -657,7 +647,7 @@ def _section_text(request: StandardRequest, key: str) -> str:
             [
                 (
                     f"향후 5~10년의 전략적 방향은 HBM4의 단기 실행력과 PIM·CXL의 중기 옵션 확보를 2단계로 병행하는 구조가 가장 타당하다. "
-                    f"이 추론은 {evidence_reference}와 {news_citation}에 근거한다.\n추론 근거:\n- HBM4는 단기 수요와 직접 연결되는 반면 PIM과 CXL은 중기 차별화 수단으로 작동한다.\n- 기술 투자 우선순위를 2단계로 나누면 단기 수익성과 중기 옵션 가치를 동시에 관리할 수 있다.\n- 패키징, 열, 인터커넥트의 3개 병목을 동시에 해결하는 기업이 고객 락인을 더 강하게 형성할 수 있다.\n종합 시사점 및 Conclusion:\n- SK hynix는 단기적으로 HBM4 실행력을 통해 매출 가시성을 확보해야 한다.\n- 중기적으로는 PIM과 CXL을 통해 차세대 시스템 아키텍처 대응력을 높여야 한다.\n- 경쟁사 비교 결과를 종합하면 기술 우위보다 통합 실행력과 고객 채택 구조가 더 중요한 결론으로 도출된다."
+                    f"이 추론은 {evidence_reference}와 {news_citation}에 근거한다.\n추론 근거:\n- HBM4는 단기 수요와 직접 연결되는 반면 PIM과 CXL은 중기 차별화 수단으로 작동한다.\n- 기술 투자 우선순위를 2단계로 나누면 단기 수익성과 중기 옵션 가치를 동시에 관리할 수 있다.\n- 패키징, 열, 인터커넥트의 3개 병목을 동시에 해결하는 기업이 고객 락인을 더 강하게 형성할 수 있다.\n종합 시사점 및 Conclusion:\n- SK hynix는 단기적으로 HBM4 실행력을 통해 매출 가시성을 확보해야 한다.\n- 중기적으로는 PIM과 CXL을 통해 차세대 시스템 아키텍처 대응력을 높여야 한다.\n- 경쟁사 비교 결과를 종합하면 기술 우위보다 통합 실행력과 고객 채택 구조가 더 중요한 결론으로 도출된다.\n- 실행 우선순위는 수율 안정화, 패키징 병목 완화, 고객 채택 시나리오 검증을 동시에 관리하는 운영 체계를 확보하는 데 있다."
                 ),
                 _limitation_block(
                     [

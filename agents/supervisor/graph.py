@@ -395,6 +395,16 @@ def save_graph_visualization(destination: Path | None = None) -> Path:
     return destination
 
 
+def save_graph_mermaid_source(destination: Path | None = None) -> Path:
+    ensure_runtime_directories()
+    graph = build_graph()
+    mermaid_text = graph.get_graph(xray=True).draw_mermaid()
+    destination = destination or GRAPHS_DIR / "supervisor_graph_xray.mmd"
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    destination.write_text(mermaid_text, encoding="utf-8")
+    return destination
+
+
 def _render_fallback_png(text: str) -> bytes:
     try:
         from PIL import Image, ImageDraw

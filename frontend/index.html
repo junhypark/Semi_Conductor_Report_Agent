@@ -411,7 +411,14 @@
           </div>
           <iframe id="pdf-viewer" class="pdf-frame" title="Latest PDF report"></iframe>
         </div>
-        <div class="panel">
+      </section>
+
+      <section class="panel" style="margin-top: 18px;">
+        <div class="panel-title">
+          <h2>Raw Response</h2>
+          <span class="badge">JSON</span>
+        </div>
+        <pre id="raw-output">{}</pre>
       </section>
     </div>
 
@@ -444,7 +451,9 @@
       }
 
       function setStatus(message) {
-        statusBoxEl.textContent = message;
+        if (statusBoxEl) {
+          statusBoxEl.textContent = message;
+        }
       }
 
       function safeText(value, fallback = "-") {
@@ -459,6 +468,9 @@
       }
 
       function renderArtifacts(artifacts) {
+        if (!artifactListEl) {
+          return;
+        }
         artifactListEl.innerHTML = "";
         const items = [
           ["Graph", artifacts.graph_url],
@@ -478,6 +490,9 @@
       }
 
       function renderPapers(papers) {
+        if (!paperListEl) {
+          return;
+        }
         paperListEl.innerHTML = "";
         if (!papers || papers.length === 0) {
           const item = document.createElement("div");
@@ -509,22 +524,30 @@
         metaBadgeEl.textContent = state.meta
           ? `${state.meta.service_name} v${state.meta.version}`
           : "Meta unavailable";
-        healthBadgeEl.textContent = state.health && state.health.status === "ok" ? "Service healthy" : "Health unknown";
+        if (healthBadgeEl) {
+          healthBadgeEl.textContent = state.health && state.health.status === "ok" ? "Service healthy" : "Health unknown";
+        }
 
         const artifacts = state.artifacts || {};
         renderArtifacts(artifacts);
         renderPapers(state.latest_papers || []);
 
-        if (artifacts.graph_url) {
+        if (graphImageEl && artifacts.graph_url) {
           graphImageEl.src = `${artifacts.graph_url}?t=${Date.now()}`;
         }
-        if (artifacts.pdf_url) {
+        if (pdfViewerEl && artifacts.pdf_url) {
           pdfViewerEl.src = `${artifacts.pdf_url}?t=${Date.now()}`;
         }
 
-        metricIterationsEl.textContent = safeText(state.latest_run?.iteration_count);
-        metricJudgeEl.textContent = formatScore(state.latest_run?.judge_score);
-        metricTrlEl.textContent = formatScore(state.latest_run?.trl_numeric_score);
+        if (metricIterationsEl) {
+          metricIterationsEl.textContent = safeText(state.latest_run?.iteration_count);
+        }
+        if (metricJudgeEl) {
+          metricJudgeEl.textContent = formatScore(state.latest_run?.judge_score);
+        }
+        if (metricTrlEl) {
+          metricTrlEl.textContent = formatScore(state.latest_run?.trl_numeric_score);
+        }
       }
 
       async function refreshDashboard() {
@@ -573,7 +596,9 @@
             body: JSON.stringify(payload)
           });
           const data = await response.json();
-          rawOutputEl.textContent = JSON.stringify(data, null, 2);
+          if (rawOutputEl) {
+            rawOutputEl.textContent = JSON.stringify(data, null, 2);
+          }
 
           if (!response.ok || data.status !== "success") {
             throw new Error(data?.error?.message || `Invoke failed with status ${response.status}`);
@@ -581,9 +606,15 @@
 
           const scores = data.score || {};
           const docScores = scores.doc_generation || {};
-          metricIterationsEl.textContent = safeText(data.output?.execution_summary?.iteration_count);
-          metricJudgeEl.textContent = formatScore(docScores.judge_score);
-          metricTrlEl.textContent = formatScore(docScores.trl_numeric_score);
+          if (metricIterationsEl) {
+            metricIterationsEl.textContent = safeText(data.output?.execution_summary?.iteration_count);
+          }
+          if (metricJudgeEl) {
+            metricJudgeEl.textContent = formatScore(docScores.judge_score);
+          }
+          if (metricTrlEl) {
+            metricTrlEl.textContent = formatScore(docScores.trl_numeric_score);
+          }
 
           setStatus("Supervisor run completed.");
           await refreshDashboard();
