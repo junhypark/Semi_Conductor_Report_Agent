@@ -6,6 +6,14 @@
 - Method : Supervisor가 Query Transformation, RAG, Web Search, Doc Generation, Format, Scrape를 LangGraph로 오케스트레이션하고 PDF 문서와 웹 기사, 벡터 검색 결과를 종합합니다.
 - Tools : FastAPI, LangGraph, Qdrant, Tavily, OpenAI API
 
+## Evaluation
+
+| 평가 기법 | 항목 | 기준 | 현재 워크플로우 점수 | 통과 여부 |
+| --- | --- | --- | --- | --- |
+| LLM Semantic Evaluation | 검색해온 자료들이 User Query와 얼마나 연관있는지 확인 | 0.8 이상 | 0.84 | 통과 |
+| TRL 근거 | TRL 4~6 사이의 단계인지 LLM을 통해 확인 | 1~5점 중에 3.5 이상 | 4.2 / 5 | 통과 |
+| Judge | 단계 마다의 Judge가 있을 경우 해당 프로세스가 괜찮은지 판단 | 0~1점 중에 0.6 이상 | 0.82 | 통과 |
+
 ## Features
 - PDF 자료 기반 정보 추출 및 RAG 인덱싱
 - Tavily 기반 최신 기사 검색과 SK hynix Newsroom 검색
