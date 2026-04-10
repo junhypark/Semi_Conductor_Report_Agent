@@ -37,7 +37,7 @@
 
 ## Architecture
 
-![Architecture](./mermaid-diagram%20(1).png)
+![Architecture](./outputs/graphs/supervisor_graph_xray.png)
 
 ## Directory Structure
 
