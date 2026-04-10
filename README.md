@@ -37,7 +37,7 @@
 
 ## Architecture
 
-![Architecture]([./outputs/graphs/supervisor_graph_xray.png](https://github.com/user-attachments/assets/e6eb8b8a-3567-4bc2-bb99-c4f8c0cb77b7))
+![Architecture]([<img width="702" height="471" alt="Image" src="https://github.com/user-attachments/assets/bbac81f5-63d5-40db-ad78-a5428d9045f9" />)
 
 ## Directory Structure
 
