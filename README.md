@@ -80,6 +80,10 @@ uv sync
 
 브라우저에서 `http://127.0.0.1:8000/`를 열면 됩니다.
 
+- 이때 LLM mode를 live로 하면 Web Search를 사용합니다.
+- LLM mode가 auto면 live와 stub을 자동으로 사용합니다.
+- LLM mode가 stub이면 저장된 내용을 사용합니다.
+
 ## Docker Compose
 
 ```bash
