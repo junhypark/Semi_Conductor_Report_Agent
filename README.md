@@ -37,7 +37,7 @@
 
 ## Architecture
 
-![Architecture]([<img width="702" height="471" alt="Image" src="https://github.com/user-attachments/assets/bbac81f5-63d5-40db-ad78-a5428d9045f9" />)
+<img width="702" height="471" alt="Image" src="https://github.com/user-attachments/assets/bbac81f5-63d5-40db-ad78-a5428d9045f9" />
 
 ## Directory Structure
 
